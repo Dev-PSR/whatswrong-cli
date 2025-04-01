@@ -1,31 +1,49 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-echo Installing 'whatswrong'...
+echo Installing 'whatswrong' CLI...
 
-:: Define install locations
+:: Step 1: Check for Git Bash
+set "GIT_BASH=%ProgramFiles%\Git\bin\bash.exe"
+if not exist "%GIT_BASH%" (
+    set "GIT_BASH=%ProgramFiles(x86)%\Git\bin\bash.exe"
+)
+
+if not exist "%GIT_BASH%" (
+    echo.
+    echo [✗] Git Bash is not installed!
+    echo.
+    echo Please install it from:
+    echo https://git-scm.com/download/win
+    echo.
+    echo After installing Git Bash, re-run this installer.
+    pause
+    exit /b
+)
+
+:: Step 2: Define paths
 set "INSTALL_DIR=%USERPROFILE%\.whatswrong"
 set "SCRIPT_URL=https://raw.githubusercontent.com/dev-psr/whatswrong-cli/main/whatswrong"
 set "SCRIPT_PATH=%INSTALL_DIR%\whatswrong"
 set "WRAPPER_DIR=C:\dev-tools"
 set "WRAPPER_PATH=%WRAPPER_DIR%\whatswrong.bat"
 
-:: Create folders
+:: Step 3: Create folders
 mkdir "%INSTALL_DIR%" >nul 2>&1
 mkdir "%WRAPPER_DIR%" >nul 2>&1
 
-:: Download script
-echo Downloading script...
+:: Step 4: Download the script
+echo Downloading 'whatswrong' script...
 powershell -Command "Invoke-WebRequest -Uri '%SCRIPT_URL%' -OutFile '%SCRIPT_PATH%'"
 
-:: Create wrapper that runs bash with the script
-echo Creating wrapper...
+:: Step 5: Create the wrapper with forward slashes
+echo Creating launcher...
 (
 echo @echo off
-echo "C:\Program Files\Git\bin\bash.exe" "%SCRIPT_PATH%" %%*
+echo "%GIT_BASH%" "C:/Users/%USERNAME%/.whatswrong/whatswrong" %%*
 ) > "%WRAPPER_PATH%"
 
-:: Add wrapper dir to PATH if needed
+:: Step 6: Add wrapper to PATH if missing
 echo Checking PATH...
 echo %PATH% | find /I "%WRAPPER_DIR%" >nul
 if errorlevel 1 (
@@ -37,6 +55,5 @@ if errorlevel 1 (
 
 echo.
 echo [✓] Installed successfully!
-echo You can now run 'whatswrong' from any terminal.
+echo You can now use 'whatswrong' from any terminal window.
 pause
-
